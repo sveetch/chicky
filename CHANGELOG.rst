@@ -8,7 +8,7 @@ Development
 
 * Added core program;
 * Added working commandline;
-
+* Added logo;
 
 Version 0.1.0 - 2025/02/19
 **************************
