@@ -10,8 +10,7 @@ A simple tool to create checksum for files from a directory
 Dependencies
 ************
 
-* `Python`_>=3.8;
-* `Click`_>=8.0;
+There is no dependencies.
 
 Links
 *****

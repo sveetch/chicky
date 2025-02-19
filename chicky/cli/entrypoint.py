@@ -1,61 +1,80 @@
 """
-Main entrance to commandline actions
+Command line interface
 """
-import click
+import argparse
+import datetime
+import json
+import sys
+from pathlib import Path
 
-from chicky.logger import init_logger
-
-from chicky.cli.version import version_command
-from chicky.cli.greet import greet_command
-
-
-# Help alias on "-h" argument
-CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+from ..core import ExtendedJsonEncoder, checksum, collect_files
 
 
-# Default logger conf
-APP_LOGGER_CONF = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", None)
-
-
-@click.group(context_settings=CONTEXT_SETTINGS)
-@click.option(
-    "-v", "--verbose",
-    type=click.IntRange(min=0, max=5),
-    default=4,
-    metavar="INTEGER",
-    help=(
-        "An integer between 0 and 5, where '0' make a totaly "
-        "silent output and '5' set level to DEBUG (the most verbose "
-        "level). Default to '4' (Info level)."
+def main(argv=sys.argv):
+    parser = argparse.ArgumentParser(
+        description=(
+            "Build a Blake2b hash for every files recursively from a directory and "
+            "store them into a manifest file."
+        ),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-)
-@click.pass_context
-def cli_frontend(ctx, verbose):
-    """
-    Sample tool for chicky
-    """
-    printout = True
-    if verbose == 0:
-        verbose = 1
-        printout = False
-
-    # Verbosity is the inverse of logging levels
-    levels = [item for item in APP_LOGGER_CONF]
-    levels.reverse()
-    # Init the logger config
-    root_logger = init_logger(
-        "chicky",
-        levels[verbose],
-        printout=printout
+    parser.add_argument(
+        "source",
+        type=Path,
+        metavar="DIRECTORY_PATH",
+        help=(
+            "An existing path of a directory to traverse to find elligible files. "
+            "Eligibility is defined from allowed extensions."
+        )
+    )
+    parser.add_argument(
+        "--ext",
+        metavar="FILE_EXTENSION",
+        action="append",
+        help=(
+            "Allowed extensions. Only filenames ending with one allowed extensions "
+            "will be collected. You can use it multiple times to allow multiple "
+            "extension. If no extension is given then all files are collected. Do not "
+            "start your extension pattern with their leading dot because it is already "
+            "appended from code."
+        )
+    )
+    parser.add_argument(
+        "--destination",
+        metavar="FILE_PATH",
+        type=Path,
+        help="Path where to write file of collected files and their checksum.",
+    )
+    parser.add_argument(
+        "--format",
+        default="json",
+        choices=["json", "text"],
+        help="Output format. JSON format is the one with the most informations.",
     )
 
-    # Init the default context that will be passed to commands
-    ctx.obj = {
-        "verbosity": verbose,
-        "logger": root_logger,
-    }
+    args = parser.parse_args(argv[1:])
 
+    files = collect_files(args.source, extensions=args.ext)
 
-# Attach commands methods to the main grouper
-cli_frontend.add_command(version_command, name="version")
-cli_frontend.add_command(greet_command, name="greet")
+    # Serialize to format
+    if args.format == "text":
+        manifest = "\n".join([
+            str(path) + "\t" + checksum
+            for path, checksum in files
+        ])
+    else:
+        store = {
+            "created": datetime.datetime.now().isoformat(timespec="seconds"),
+            "basedir": args.source,
+            "extensions": args.ext,
+            "files": {
+                str(path): checksum
+                for path, checksum in files
+            },
+        }
+        manifest = json.dumps(store, indent=4, cls=ExtendedJsonEncoder)
+
+    if args.destination:
+        args.destination.write_text(manifest)
+    else:
+        print(manifest)
