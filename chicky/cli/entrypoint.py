@@ -1,5 +1,8 @@
 """
 Command line interface
+
+.. todo::
+    TODO: Need a '--version' just to display package version then exit.
 """
 import argparse
 import datetime
@@ -7,7 +10,7 @@ import json
 import sys
 from pathlib import Path
 
-from ..core import ExtendedJsonEncoder, checksum, collect_files
+from ..core import ExtendedJsonEncoder, collect_files
 
 
 def main(argv=sys.argv):
