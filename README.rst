@@ -1,5 +1,4 @@
 .. _Python: https://www.python.org/
-.. _Click: https://click.palletsprojects.com
 
 ======
 Chicky
@@ -10,7 +9,7 @@ A simple tool to create checksum for files from a directory
 Dependencies
 ************
 
-There is no dependencies.
+* `Python`_>=3.8;
 
 Links
 *****
