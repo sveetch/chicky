@@ -10,14 +10,16 @@ import json
 import sys
 from pathlib import Path
 
+from .. import __pkgname__, __version__
 from ..core import ExtendedJsonEncoder, collect_files
 
 
 def main(argv=sys.argv):
     parser = argparse.ArgumentParser(
         description=(
-            "Build a Blake2b hash for every files recursively from a directory and "
-            "store them into a manifest file."
+            "Build a Blake2b hash for every files recursively collected from a "
+            "directory. "
+            "({}=={})".format(__pkgname__, __version__)
         ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
@@ -35,31 +37,63 @@ def main(argv=sys.argv):
         metavar="FILE_EXTENSION",
         action="append",
         help=(
-            "Allowed extensions. Only filenames ending with one allowed extensions "
-            "will be collected. You can use it multiple times to allow multiple "
-            "extension. If no extension is given then all files are collected. Do not "
-            "start your extension pattern with their leading dot because it is already "
-            "appended from code."
+            "This for allowed file extensions. Only filenames ending with one of "
+            "allowed extensions will be collected. You can use it multiple times to "
+            "allow multiple extensions. If no extension is given then all files are "
+            "collected. Do not start your extension pattern with their leading dot "
+            "because it is already appended from code."
+        )
+    )
+    parser.add_argument(
+        "--ignore-dir-lead",
+        metavar="PATTERN",
+        action="append",
+        help=(
+            "This is a leading pattern that will exclude paths starting with it. This "
+            "is applied on the relative (to the 'source' path) directory path. Use it "
+            "multiple time to define multiple pattern, a single match exclude a path."
+        )
+    )
+    parser.add_argument(
+        "--ignore-file-lead",
+        metavar="PATTERN",
+        action="append",
+        help=(
+            "This is a leading pattern that will exclude files starting with it. This "
+            "is applied on filename path. Use it multiple time to define multiple "
+            "pattern, a single match exclude a path."
         )
     )
     parser.add_argument(
         "--destination",
         metavar="FILE_PATH",
         type=Path,
-        help="Path where to write file of collected files and their checksum.",
+        help=(
+            "This is the path where to write file of collected files and their "
+            "checksum. If it is not given the data will be printed to standard output."
+        ),
     )
     parser.add_argument(
         "--format",
         default="json",
         choices=["json", "text"],
-        help="Output format. JSON format is the one with the most informations.",
+        help=(
+            "This is the format to serialize data. JSON format is the one with the "
+            "most informations."
+        ),
     )
 
     args = parser.parse_args(argv[1:])
 
-    files = collect_files(args.source, extensions=args.ext)
+    files = collect_files(
+        args.source,
+        extensions=args.ext,
+        dir_leads=args.ignore_dir_lead,
+        filename_leads=args.ignore_file_lead,
+    )
 
     # Serialize to format
+    # TODO: Move to a function for formatting
     if args.format == "text":
         manifest = "\n".join([
             str(path) + "\t" + checksum
@@ -79,5 +113,6 @@ def main(argv=sys.argv):
 
     if args.destination:
         args.destination.write_text(manifest)
+        print("Written output to: {}".format(args.destination))
     else:
         print(manifest)

@@ -86,16 +86,11 @@ def collect_files(dirpath, extensions=None, dir_leads=None,
     for root, dirs, files in os.walk(dirpath):
         for item in files:
             rel = os.path.relpath(root, start=dirpath)
-            print("root:", root)
-            print("  └─ rel:", rel)
-            print("  └─ item:", item)
-
+            # Only collect item that pass filters
             if (
                 (not dir_leads or not rel.startswith(dir_leads)) and
                 (not filename_leads or not item.startswith(filename_leads)) and
                 (not extensions or item.endswith(extensions))
             ):
-
                 path = Path(os.path.join(root, item))
-
                 yield (path.relative_to(dirpath), checksum(path))

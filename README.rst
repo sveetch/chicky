@@ -4,7 +4,7 @@
 Chicky
 ======
 
-A simple tool to create checksum for files from a directory
+A simple tool to create checksum for files from a directory.
 
 Dependencies
 ************
