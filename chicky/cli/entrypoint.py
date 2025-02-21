@@ -11,11 +11,11 @@ import sys
 from pathlib import Path
 
 from .. import __pkgname__, __version__
-from ..core import ExtendedJsonEncoder, collect_files
+from ..core import collect_files
 
 
-def main(argv=sys.argv):
-    parser = argparse.ArgumentParser(
+def argumentparser_init(parser_class):
+    parser = parser_class(
         description=(
             "Build a Blake2b hash for every files recursively collected from a "
             "directory. "
@@ -37,7 +37,7 @@ def main(argv=sys.argv):
         metavar="FILE_EXTENSION",
         action="append",
         help=(
-            "This for allowed file extensions. Only filenames ending with one of "
+            "This is for allowed file extensions. Only filenames ending with one of "
             "allowed extensions will be collected. You can use it multiple times to "
             "allow multiple extensions. If no extension is given then all files are "
             "collected. Do not start your extension pattern with their leading dot "
@@ -83,6 +83,11 @@ def main(argv=sys.argv):
         ),
     )
 
+    return parser
+
+
+def main(argv=sys.argv):
+    parser = argumentparser_init(argparse.ArgumentParser)
     args = parser.parse_args(argv[1:])
 
     files = collect_files(
@@ -102,14 +107,14 @@ def main(argv=sys.argv):
     else:
         store = {
             "created": datetime.datetime.now().isoformat(timespec="seconds"),
-            "basedir": args.source,
+            "basedir": str(args.source),
             "extensions": args.ext,
             "files": {
                 str(path): checksum
                 for path, checksum in files
             },
         }
-        manifest = json.dumps(store, indent=4, cls=ExtendedJsonEncoder)
+        manifest = json.dumps(store, indent=4)
 
     if args.destination:
         args.destination.write_text(manifest)

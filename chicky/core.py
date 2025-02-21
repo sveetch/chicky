@@ -1,29 +1,6 @@
-import json
 import os
-import types
 from hashlib import blake2b
 from pathlib import Path
-
-
-class ExtendedJsonEncoder(json.JSONEncoder):
-    """
-    Additional opinionated support for more basic object types.
-
-    Usage sample: ::
-
-        json.dumps(..., cls=ExtendedJsonEncoder)
-    """
-    def default(self, obj):
-        if isinstance(obj, bytes):
-            return obj.decode("utf-8")
-        # Support for pathlib.Path to a string
-        if isinstance(obj, Path):
-            return str(obj)
-        if isinstance(obj, types.GeneratorType):
-            return list(obj)
-
-        # Let the base class default method raise the TypeError
-        return json.JSONEncoder.default(self, obj)
 
 
 def checksum(filepath, digest_size=20):
@@ -32,7 +9,7 @@ def checksum(filepath, digest_size=20):
 
     Borrowed from: https://stackoverflow.com/a/44873382
 
-    .. Note::
+    .. Todo::
         Once minimal Python version support move to 3.11 we should be able to simplify
         this code with ``hashlib.file_digest()`` usage instead.
 
@@ -59,8 +36,7 @@ def checksum(filepath, digest_size=20):
     return h.hexdigest()
 
 
-def collect_files(dirpath, extensions=None, dir_leads=None,
-                  filename_leads=None):
+def collect_files(dirpath, extensions=None, dir_leads=None, filename_leads=None):
     """
     Recursively collect every file from a directory and compute their checksum.
 

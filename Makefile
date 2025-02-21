@@ -2,6 +2,8 @@ PYTHON_INTERPRETER=python3
 VENV_PATH=.venv
 
 PYTHON_BIN=$(VENV_PATH)/bin/python
+
+COMMAND_DOC_PARSER_BIN=$(PYTHON_BIN) docs/command_parser.py
 PIP_BIN=$(VENV_PATH)/bin/pip
 FLAKE_BIN=$(VENV_PATH)/bin/flake8
 PYTEST_BIN=$(VENV_PATH)/bin/pytest
@@ -103,6 +105,7 @@ docs:
 	@echo ""
 	@printf "$(FORMATBLUE)$(FORMATBOLD)---> Build documentation <---$(FORMATRESET)\n"
 	@echo ""
+	$(COMMAND_DOC_PARSER_BIN) docs/_static/command.rst
 	cd docs && make html
 .PHONY: docs
 
