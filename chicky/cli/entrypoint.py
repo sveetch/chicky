@@ -1,20 +1,15 @@
-"""
-Command line interface
-
-.. todo::
-    TODO: Need a '--version' just to display package version then exit.
-"""
 import argparse
-import datetime
-import json
 import sys
 from pathlib import Path
 
 from .. import __pkgname__, __version__
-from ..core import collect_files
+from ..core import collect_files, formatter
 
 
 def argumentparser_init(parser_class):
+    """
+    Initialize Parser and define all arguments.
+    """
     parser = parser_class(
         description=(
             "Build a Blake2b hash for every files recursively collected from a "
@@ -87,6 +82,9 @@ def argumentparser_init(parser_class):
 
 
 def main(argv=sys.argv):
+    """
+    Command interface
+    """
     parser = argumentparser_init(argparse.ArgumentParser)
     args = parser.parse_args(argv[1:])
 
@@ -97,24 +95,7 @@ def main(argv=sys.argv):
         filename_leads=args.ignore_file_lead,
     )
 
-    # Serialize to format
-    # TODO: Move to a function for formatting
-    if args.format == "text":
-        manifest = "\n".join([
-            str(path) + "\t" + checksum
-            for path, checksum in files
-        ])
-    else:
-        store = {
-            "created": datetime.datetime.now().isoformat(timespec="seconds"),
-            "basedir": str(args.source),
-            "extensions": args.ext,
-            "files": {
-                str(path): checksum
-                for path, checksum in files
-            },
-        }
-        manifest = json.dumps(store, indent=4)
+    manifest = formatter(files, args)
 
     if args.destination:
         args.destination.write_text(manifest)

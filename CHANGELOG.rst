@@ -6,6 +6,8 @@ Changelog
 Development
 ***********
 
+The first working version with everything needed.
+
 * Added core program;
 * Added working commandline;
 * Added logo;

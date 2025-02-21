@@ -1,3 +1,5 @@
+import datetime
+import json
 import os
 from hashlib import blake2b
 from pathlib import Path
@@ -70,3 +72,31 @@ def collect_files(dirpath, extensions=None, dir_leads=None, filename_leads=None)
             ):
                 path = Path(os.path.join(root, item))
                 yield (path.relative_to(dirpath), checksum(path))
+
+
+def formatter(files, args):
+    """
+    Format file data.
+
+    Arguments:
+        args (object):
+
+    Returns:
+        string:
+    """
+    if args.format == "text":
+        return "\n".join([
+            str(path) + "\t" + checksum
+            for path, checksum in files
+        ])
+    else:
+        store = {
+            "created": datetime.datetime.now().isoformat(timespec="seconds"),
+            "basedir": str(args.source),
+            "extensions": args.ext,
+            "files": {
+                str(path): checksum
+                for path, checksum in files
+            },
+        }
+        return json.dumps(store, indent=4)
