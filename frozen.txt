@@ -1,4 +1,4 @@
-# Frozen requirement versions for 'chicky==0.2.0rc7' installation
+# Frozen requirement versions for 'chicky==0.2.0' installation
 # From extra requirements 'dev'
 pytest==8.3.4
 freezegun==1.5.1
